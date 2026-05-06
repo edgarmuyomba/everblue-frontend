@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decolum — Manage Invoices</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@500&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --blue: #1877F2;
+    --blue-dark: #1565D8;
+    --blue-light: #E7F0FF;
+    --accent: #0A4DC3;
+    --white: #FFFFFF;
+    --smoke: #F5F6FA;
+    --gray-100: #EBEDF0;
+    --gray-200: #DADDE1;
+    --gray-400: #8A8D91;
+    --gray-600: #606770;
+    --gray-800: #1C1E21;
+    --radius: 6px;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--smoke); color:var(--gray-800); height:100vh; overflow:hidden; }
+  .layout { display:grid; grid-template-columns:240px 1fr; grid-template-rows:60px 1fr; height:100vh; }
+
+  .sidebar { grid-row:1/3; background:var(--white); border-right:1px solid var(--gray-100); display:flex; flex-direction:column; }
+  .sidebar-brand { padding:20px 24px; border-bottom:1px solid var(--gray-100); }
+  .sidebar-brand h1 { font-size:35px; font-weight:900; color:#6c6c6c; letter-spacing:-0.5px; }
+  .sidebar-brand span { font-size:9px; color:var(--gray-400); text-transform:uppercase; letter-spacing:1.5px; font-weight:500; }
+  .sidebar-nav { flex:1; padding:12px; display:flex; flex-direction:column; gap:2px; }
+  .sidebar-nav a { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:var(--radius); font-size:14px; font-weight:500; color:var(--gray-600); text-decoration:none; transition:all 0.15s; cursor:pointer; }
+  .sidebar-nav a:hover { background:var(--smoke); color:var(--gray-800); }
+  .sidebar-nav a.active { background:var(--accent); color:var(--white); }
+  .sidebar-nav a svg { width:18px; height:18px; flex-shrink:0; }
+  .sidebar-nav .spacer { flex:1; }
+
+  .header { background:var(--white); border-bottom:1px solid var(--gray-100); display:flex; align-items:center; justify-content:space-between; padding:0 32px; }
+  .header h2 { font-size:20px; font-weight:700; letter-spacing:-0.3px; }
+  .header-user { display:flex; align-items:center; gap:12px; cursor:pointer; }
+  .header-user span { font-size:14px; font-weight:500; color:var(--gray-600); }
+  .header-avatar { width:34px; height:34px; border-radius:50%; background:#606770; display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:600; }
+
+  .main { padding:0; overflow-y:auto; display:flex; flex-direction:column; }
+
+  /* Breadcrumb */
+  .breadcrumb-bar { display:flex; align-items:center; gap:10px; padding:14px 24px; }
+  .back-btn { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border:none; background:none; cursor:pointer; color:var(--gray-600); transition:color 0.15s; }
+  .back-btn:hover { color:var(--gray-800); }
+  .breadcrumb-text { font-size:13px; color:var(--gray-400); font-weight:500; }
+  .breadcrumb-text strong { color:var(--gray-800); font-weight:600; }
+
+  /* Categories */
+  .categories { padding:8px 24px 24px; display:flex; flex-direction:column; gap:8px; }
+  .category-tile {
+    background:var(--white); border:1px solid var(--gray-100); border-radius:var(--radius);
+    padding:22px 28px; display:flex; align-items:center; gap:20px;
+    cursor:pointer; transition:all 0.15s;
+  }
+  .category-tile:hover { border-color:var(--accent); background:var(--blue-light); }
+  .category-count {
+    font-size:32px; font-weight:500; font-family:'DM Mono',monospace; color:var(--accent); min-width:56px; letter-spacing:-1px;
+  }
+  .category-divider {
+    width:1px; height:32px; background:var(--gray-200);
+  }
+  .category-name { font-size:16px; font-weight:600; color:var(--gray-800); }
+  .category-chevron { margin-left:auto; color:var(--gray-400); }
+
+  /* Detail 3-col */
+  .detail-view { flex:1; display:grid; grid-template-columns:400px 1fr 400px; min-height:0; }
+  .invoice-list-col { border-right:1px solid var(--gray-100); background:var(--white); display:flex; flex-direction:column; overflow-y:auto; }
+  .invoice-list-col .col-header { padding:16px 20px; border-bottom:1px solid var(--gray-100); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--gray-400); }
+  .inv-item {
+    padding:14px 20px; border-bottom:1px solid var(--gray-100); cursor:pointer; transition:all 0.12s;
+  }
+  .inv-item:hover { background:var(--smoke); }
+  .inv-item.selected { background:var(--blue-light); border-left:3px solid var(--accent); }
+  .inv-client { font-size:14px; font-weight:600; color:var(--gray-800); }
+  .inv-amount { font-size:13px; font-weight:700; color:var(--accent); margin-top:3px; }
+  .inv-meta { font-size:12px; color:var(--gray-400); margin-top:4px; display:flex; align-items:center; gap:6px; }
+  .inv-meta .sep { color:var(--gray-200); }
+
+  /* Center PDF area */
+  .pdf-col { background:var(--smoke); display:flex; align-items:center; justify-content:center; flex-direction:column; overflow:hidden; }
+  .pdf-placeholder { font-size:14px; color:var(--gray-400); font-weight:500; display:flex; flex-direction:column; align-items:center; gap:12px; }
+  .pdf-placeholder svg { color:var(--gray-200); }
+  .pdf-frame { width:100%; height:100%; border:none; }
+
+  /* Right panel */
+  .right-col { border-left:1px solid var(--gray-100); background:var(--white); display:flex; flex-direction:column; overflow-y:auto; }
+  .right-col .col-header { padding:16px 20px; border-bottom:1px solid var(--gray-100); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--gray-400); }
+  .right-placeholder { flex:1; display:flex; align-items:center; justify-content:center; font-size:13px; color:var(--gray-400); padding:20px; text-align:center; }
+
+  .field-group { display:flex; flex-direction:column; gap:4px; }
+  .field-label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--gray-400); }
+  .field-input {
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:500; color:var(--gray-800);
+    padding:8px 12px; border:1px solid var(--gray-200); border-radius:var(--radius);
+    background:var(--white); outline:none; transition:border-color 0.15s; width:100%;
+  }
+  .field-input:focus { border-color:var(--accent); }
+  .field-divider { height:1px; background:var(--gray-100); margin:4px 0; }
+  .btn-primary {
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; color:white;
+    background:var(--accent); border:none; border-radius:var(--radius);
+    padding:10px 20px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px; flex:1;
+  }
+  .btn-primary:hover { background:#083FA3; }
+  .btn-primary:disabled { opacity:0.6; cursor:not-allowed; }
+  .btn-outline {
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; color:var(--gray-600);
+    background:none; border:1px solid var(--gray-200); border-radius:var(--radius);
+    padding:10px 20px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px;
+  }
+  .btn-outline:hover { border-color:var(--gray-800); color:var(--gray-800); }
+  .btn-danger {
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:600; color:white;
+    background:#D63031; border:none; border-radius:var(--radius);
+    padding:10px 20px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; gap:8px; width:100%;
+  }
+  .btn-danger:hover { background:#b52728; }
+  @keyframes spin2 { to { transform:rotate(360deg); } }
+  .spinner { width:14px; height:14px; border:2px solid rgba(255,255,255,0.3); border-top-color:white; border-radius:50%; animation:spin2 0.6s linear infinite; flex-shrink:0; }
+  .spinner-dark { width:14px; height:14px; border:2px solid var(--gray-200); border-top-color:var(--gray-600); border-radius:50%; animation:spin2 0.6s linear infinite; flex-shrink:0; }
+  .chip-list { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip {
+    font-size:12px; font-weight:500; padding:4px 10px; border-radius:20px;
+    border:1px solid var(--gray-200); color:var(--gray-600); cursor:pointer; transition:all 0.12s; user-select:none;
+  }
+  .chip.active { background:var(--accent); color:white; border-color:var(--accent); }
+  .success-toast {
+    position:absolute; top:0; left:0; right:0; z-index:10;
+    padding:12px 24px; font-size:13px; font-weight:600;
+    background:#ECFDF5; border-bottom:1.5px solid #166534; color:#166534;
+    display:flex; align-items:center; gap:8px;
+    animation: toastSlideIn 0.25s ease, toastSlideOut 0.3s ease 1.7s forwards;
+  }
+  @keyframes toastSlideIn { from { opacity:0; transform:translateY(-100%); } to { opacity:1; transform:translateY(0); } }
+  @keyframes toastSlideOut { from { opacity:1; } to { opacity:0; } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+
+const SidebarIcon = ({ name }) => {
+  const icons = {
+    grid: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="1" y="1" width="6" height="6" rx="1" /><rect x="11" y="1" width="6" height="6" rx="1" /><rect x="1" y="11" width="6" height="6" rx="1" /><rect x="11" y="11" width="6" height="6" rx="1" /></svg>,
+    file: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M10 1H4a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V6L10 1z" /><path d="M10 1v5h5" /></svg>,
+    upload: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M9 12V3M5 7l4-4 4 4M1 13v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>,
+    sliders: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="3" y1="15" x2="3" y2="9" /><line x1="3" y1="5" x2="3" y2="3" /><line x1="9" y1="15" x2="9" y2="11" /><line x1="9" y1="7" x2="9" y2="3" /><line x1="15" y1="15" x2="15" y2="7" /><line x1="15" y1="3" x2="15" y2="3" /><circle cx="3" cy="7" r="2" /><circle cx="9" cy="9" r="2" /><circle cx="15" cy="5" r="2" /></svg>,
+    settings: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="9" cy="9" r="3" /><path d="M15.4 11a1.2 1.2 0 00.2 1.3l.1.1a1.4 1.4 0 11-2 2l-.1-.1a1.2 1.2 0 00-1.3-.2 1.2 1.2 0 00-.7 1.1v.2a1.4 1.4 0 11-2.8 0v-.1a1.2 1.2 0 00-.8-1.1 1.2 1.2 0 00-1.3.2l-.1.1a1.4 1.4 0 11-2-2l.1-.1a1.2 1.2 0 00.2-1.3 1.2 1.2 0 00-1.1-.7h-.2a1.4 1.4 0 110-2.8h.1a1.2 1.2 0 001.1-.8 1.2 1.2 0 00-.2-1.3l-.1-.1a1.4 1.4 0 112-2l.1.1a1.2 1.2 0 001.3.2h.1a1.2 1.2 0 00.7-1.1v-.2a1.4 1.4 0 112.8 0v.1a1.2 1.2 0 00.7 1.1 1.2 1.2 0 001.3-.2l.1-.1a1.4 1.4 0 112 2l-.1.1a1.2 1.2 0 00-.2 1.3v.1a1.2 1.2 0 001.1.7h.2a1.4 1.4 0 010 2.8h-.1a1.2 1.2 0 00-1.1.7z" /></svg>,
+    exit: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M6 16H3a1 1 0 01-1-1V3a1 1 0 011-1h3M12 13l4-4-4-4M16 9H6" /></svg>
+  };
+  return icons[name] || null;
+};
+
+const sidebarItems = [
+{ label: 'Dashboard', icon: 'grid', href: 'Dashboard.html' },
+{ label: 'Manage Invoices', icon: 'file', active: true, href: 'Manage Invoices.html' },
+{ label: 'Import Invoices', icon: 'upload', href: 'Import Invoices.html' },
+{ label: 'Options', icon: 'sliders' },
+{ label: 'Settings', icon: 'settings' }];
+
+
+const categories = [
+{ id: 'pending', name: 'Pending Review', count: 36, color: '#FDB813' },
+{ id: 'missing', name: 'Missing Details', count: 2, color: '#FA3E3E' },
+{ id: 'close', name: 'Payment Date Close', count: 10, color: '#FF8C42' },
+{ id: 'past', name: 'Payment Date Past', count: 13, color: '#D63031' },
+{ id: 'all', name: 'All Invoices', count: 62, color: 'var(--accent)' }];
+
+
+const clients = [
+'Meridian Corp', 'Atlas Industries', 'Vertex Solutions', 'NovaBridge LLC',
+'Pinnacle Group', 'SkyBound Tech', 'Crescent Partners', 'Ironforge Ltd',
+'Helios Capital', 'Dawnlight Inc', 'Apex Global', 'Silverton Holdings',
+'Cobalt Ventures', 'Harborview Group', 'Titan Logistics', 'Orbit Media'];
+
+
+function generateInvoices(category) {
+  const seed = category.count;
+  const invoices = [];
+  for (let i = 0; i < seed; i++) {
+    const client = clients[i % clients.length];
+    const day = (i * 7 + 3) % 28 + 1;
+    const month = i * 3 % 6 + 1;
+    const amount = (i * 1337 + 4200) % 95000 + 5000;
+    const lockup = (i * 11 + 5) % 30 + 3;
+    const months = ['January', 'February', 'March', 'April', 'May', 'June'];
+    const ordinal = (d) => {
+      const s = ['th', 'st', 'nd', 'rd'];
+      const v = d % 100;
+      return d + (s[(v - 20) % 10] || s[v] || s[0]);
+    };
+    invoices.push({
+      id: `INV-${String(i + 1).padStart(3, '0')}`,
+      client,
+      amount: `$${amount.toLocaleString()}`,
+      date: `${ordinal(day)} ${months[month - 1]}, 2026`,
+      lockup: `${lockup} Lockup Days`
+    });
+  }
+  return invoices;
+}
+
+const pdfStyles = {
+  page: { width: '595px', minHeight: '842px', background: '#fff', boxShadow: '0 2px 16px rgba(0,0,0,0.12)', padding: '48px', fontFamily: 'DM Sans, sans-serif', position: 'relative' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '40px', paddingBottom: '20px', borderBottom: '2px solid #1C1E21' },
+  logo: { fontSize: '22px', fontWeight: 700, color: '#1C1E21', letterSpacing: '-0.5px' },
+  logoSub: { fontSize: '10px', color: '#8A8D91', marginTop: '2px', letterSpacing: '0.5px' },
+  title: { fontSize: '28px', fontWeight: 700, color: '#0A4DC3', textAlign: 'right', letterSpacing: '-0.5px' },
+  invId: { fontSize: '12px', color: '#8A8D91', textAlign: 'right', marginTop: '4px' },
+  row: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px', marginBottom: '32px' },
+  label: { fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', color: '#8A8D91', marginBottom: '4px' },
+  value: { fontSize: '13px', fontWeight: 500, color: '#1C1E21', lineHeight: '1.5' },
+  table: { width: '100%', borderCollapse: 'collapse', marginTop: '24px' },
+  th: { fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', color: '#8A8D91', textAlign: 'left', padding: '10px 0', borderBottom: '1px solid #EBEDF0' },
+  thRight: { fontSize: '10px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.8px', color: '#8A8D91', textAlign: 'right', padding: '10px 0', borderBottom: '1px solid #EBEDF0' },
+  td: { fontSize: '13px', color: '#1C1E21', padding: '12px 0', borderBottom: '1px solid #EBEDF0', fontWeight: 500 },
+  tdRight: { fontSize: '13px', color: '#1C1E21', padding: '12px 0', borderBottom: '1px solid #EBEDF0', fontWeight: 500, textAlign: 'right' },
+  totalRow: { display: 'flex', justifyContent: 'flex-end', gap: '40px', marginTop: '20px', paddingTop: '16px', borderTop: '2px solid #1C1E21' },
+  totalLabel: { fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: '#8A8D91' },
+  totalValue: { fontSize: '22px', fontWeight: 700, color: '#0A4DC3', letterSpacing: '-0.3px' },
+  footer: { position: 'absolute', bottom: '40px', left: '48px', right: '48px', display: 'flex', justifyContent: 'space-between', borderTop: '1px solid #EBEDF0', paddingTop: '16px' },
+  footerText: { fontSize: '10px', color: '#8A8D91' }
+};
+
+function InvoicePDF({ invoice }) {
+  const amt = parseInt(invoice.amount.replace(/[$,]/g, ''));
+  const lineItems = [
+  { desc: 'Professional Services — Phase 1', hours: Math.floor(amt * 0.4 / 150), rate: 150 },
+  { desc: 'Professional Services — Phase 2', hours: Math.floor(amt * 0.35 / 175), rate: 175 },
+  { desc: 'Expenses & Materials', hours: 1, rate: Math.floor(amt * 0.15) },
+  { desc: 'Administrative Fee', hours: 1, rate: Math.floor(amt * 0.1) }];
+
+  const subtotal = lineItems.reduce((s, l) => s + l.hours * l.rate, 0);
+  const tax = Math.round(subtotal * 0.08);
+  const total = subtotal + tax;
+
+  return (
+    <div style={{ height: '100%', overflow: 'auto', display: 'flex', justifyContent: 'center', padding: '24px', background: 'var(--smoke)', width: "7933.33px" }}>
+      <div style={pdfStyles.page}>
+        <div style={pdfStyles.header}>
+          <div>
+            <div style={pdfStyles.logo}>Decolum</div>
+            <div style={pdfStyles.logoSub}>Project Everblue</div>
+          </div>
+          <div>
+            <div style={pdfStyles.title}>INVOICE</div>
+            <div style={pdfStyles.invId}>{invoice.id}</div>
+          </div>
+        </div>
+
+        <div style={pdfStyles.row}>
+          <div>
+            <div style={pdfStyles.label}>Bill To</div>
+            <div style={pdfStyles.value}>{invoice.client}<br />123 Business Avenue<br />Suite 400, New York, NY 10001</div>
+          </div>
+          <div>
+            <div style={pdfStyles.label}>Invoice Date</div>
+            <div style={{ ...pdfStyles.value, marginBottom: '16px' }}>{invoice.date}</div>
+            <div style={pdfStyles.label}>Payment Terms</div>
+            <div style={pdfStyles.value}>{invoice.lockup}</div>
+          </div>
+        </div>
+
+        <table style={pdfStyles.table}>
+          <thead>
+            <tr>
+              <th style={pdfStyles.th}>Description</th>
+              <th style={pdfStyles.thRight}>Qty / Hours</th>
+              <th style={pdfStyles.thRight}>Rate</th>
+              <th style={pdfStyles.thRight}>Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            {lineItems.map((item, i) =>
+            <tr key={i}>
+                <td style={pdfStyles.td}>{item.desc}</td>
+                <td style={pdfStyles.tdRight}>{item.hours}</td>
+                <td style={pdfStyles.tdRight}>${item.rate.toLocaleString()}</td>
+                <td style={pdfStyles.tdRight}>${(item.hours * item.rate).toLocaleString()}</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+
+        <div style={pdfStyles.totalRow}>
+          <div style={{ textAlign: 'right' }}>
+            <div style={{ ...pdfStyles.footerText, marginBottom: '6px' }}>Subtotal: ${subtotal.toLocaleString()}</div>
+            <div style={{ ...pdfStyles.footerText, marginBottom: '12px' }}>Tax (8%): ${tax.toLocaleString()}</div>
+            <div style={pdfStyles.totalLabel}>Total Due</div>
+            <div style={pdfStyles.totalValue}>${total.toLocaleString()}</div>
+          </div>
+        </div>
+
+        <div style={pdfStyles.footer}>
+          <div style={pdfStyles.footerText}>Decolum Inc. · 456 Finance Street, New York, NY 10002</div>
+          <div style={pdfStyles.footerText}>accounts@decolum.com</div>
+        </div>
+      </div>
+    </div>);
+
+}
+
+const teamMembers = ['Sarah Chen', 'James Okafor', 'Maria Lopez', 'David Kim', 'Aisha Patel', 'Tom Becker'];
+
+function RightPanel({ invoice, category, onConfirm, onReminder, onEscalate }) {
+  const [fields, setFields] = React.useState({});
+  const [dirty, setDirty] = React.useState(false);
+  const [loading, setLoading] = React.useState(null); // 'confirm' | 'submit' | 'reminder' | 'escalate'
+  const [selectedTeam, setSelectedTeam] = React.useState([]);
+  const [teamSearch, setTeamSearch] = React.useState('');
+  const [teamDropOpen, setTeamDropOpen] = React.useState(false);
+  const [payDate, setPayDate] = React.useState('');
+  const [email, setEmail] = React.useState('');
+
+  React.useEffect(() => {
+    setFields({
+      invoiceId: invoice.id,
+      client: invoice.client,
+      amount: invoice.amount,
+      date: invoice.date,
+      lockup: invoice.lockup,
+    });
+    setDirty(false);
+    setLoading(null);
+    setSelectedTeam([]);
+    setPayDate('');
+    setEmail('');
+  }, [invoice.id]);
+
+  const updateField = (key, val) => {
+    setFields(prev => ({ ...prev, [key]: val }));
+    setDirty(true);
+  };
+
+  const toggleTeam = (name) => {
+    setSelectedTeam(prev => prev.includes(name) ? prev.filter(n => n !== name) : [...prev, name]);
+    setDirty(true);
+  };
+
+  const catId = category.id;
+  const showExtras = catId === 'missing' || catId === 'close' || catId === 'past';
+  const showReminder = catId === 'close';
+  const showFollowUp = catId === 'past';
+  const showEscalate = catId === 'past';
+
+  const doAction = (action, cb, delay) => {
+    setLoading(action);
+    setTimeout(() => {
+      setLoading(null);
+      if (cb) cb();
+    }, delay || 1500);
+  };
+
+  const baseFields = [
+    { key: 'invoiceId', label: 'Invoice ID' },
+    { key: 'client', label: 'Client' },
+    { key: 'amount', label: 'Amount' },
+    { key: 'date', label: 'Invoice Date' },
+    { key: 'lockup', label: 'Lockup Days' },
+  ];
+
+  return (
+    <div style={{ padding:'20px', display:'flex', flexDirection:'column', gap:'14px', flex:1 }}>
+      {baseFields.map(f => (
+        <div className="field-group" key={f.key}>
+          <label className="field-label">{f.label}</label>
+          <input className="field-input" value={fields[f.key] || ''} onChange={e => updateField(f.key, e.target.value)} />
+        </div>
+      ))}
+
+      {showExtras && (
+        <React.Fragment>
+          <div className="field-divider"></div>
+          <div style={{ fontSize:'11px', fontWeight:600, textTransform:'uppercase', letterSpacing:'0.5px', color:'var(--gray-800)', marginTop:'4px' }}>
+            {catId === 'missing' ? 'Missing Information' : 'Additional Details'}
+          </div>
+          <div className="field-group" style={{ position:'relative' }}>
+            <label className="field-label">Team Members</label>
+            {selectedTeam.length > 0 && (
+              <div style={{ display:'flex', flexWrap:'wrap', gap:'4px', marginBottom:'6px' }}>
+                {selectedTeam.map(name => (
+                  <span key={name} style={{ fontSize:'12px', fontWeight:500, padding:'3px 8px', borderRadius:'20px', background:'var(--accent)', color:'white', display:'flex', alignItems:'center', gap:'4px' }}>
+                    {name}
+                    <span style={{ cursor:'pointer', fontWeight:700, lineHeight:1 }} onClick={() => toggleTeam(name)}>&times;</span>
+                  </span>
+                ))}
+              </div>
+            )}
+            <input
+              className="field-input"
+              placeholder="Search team members..."
+              value={teamSearch}
+              onChange={e => { setTeamSearch(e.target.value); setTeamDropOpen(true); }}
+              onFocus={() => setTeamDropOpen(true)}
+              onBlur={() => setTimeout(() => setTeamDropOpen(false), 150)}
+            />
+            {teamDropOpen && (
+              <div style={{ position:'absolute', top:'100%', left:0, right:0, background:'white', border:'1px solid var(--gray-200)', borderRadius:'var(--radius)', boxShadow:'0 4px 12px rgba(0,0,0,0.08)', zIndex:10, maxHeight:'160px', overflowY:'auto', marginTop:'4px' }}>
+                {teamMembers.filter(n => n.toLowerCase().includes(teamSearch.toLowerCase())).map(name => (
+                  <div
+                    key={name}
+                    onMouseDown={e => { e.preventDefault(); toggleTeam(name); setTeamSearch(''); }}
+                    style={{ padding:'8px 12px', fontSize:'13px', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'space-between', background: selectedTeam.includes(name) ? 'var(--blue-light)' : 'transparent' }}
+                  >
+                    {name}
+                    {selectedTeam.includes(name) && <span style={{ color:'var(--accent)', fontWeight:700, fontSize:'14px' }}>&#10003;</span>}
+                  </div>
+                ))}
+                {teamMembers.filter(n => n.toLowerCase().includes(teamSearch.toLowerCase())).length === 0 && (
+                  <div style={{ padding:'8px 12px', fontSize:'13px', color:'var(--gray-400)' }}>No results</div>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="field-group">
+            <label className="field-label">Expected Payment Date</label>
+            <input className="field-input" type="date" value={payDate} onChange={e => { setPayDate(e.target.value); setDirty(true); }} />
+          </div>
+          <div className="field-group">
+            <label className="field-label">Client Email</label>
+            <input className="field-input" type="email" placeholder="client@company.com" value={email} onChange={e => { setEmail(e.target.value); setDirty(true); }} />
+          </div>
+        </React.Fragment>
+      )}
+
+      <div style={{ marginTop:'auto', paddingTop:'16px', display:'flex', flexDirection:'column', gap:'10px' }}>
+        {catId === 'pending' && (
+          <button className="btn-primary" disabled={loading === 'confirm'} onClick={() => doAction('confirm', onConfirm)}>
+            {loading === 'confirm' ? <React.Fragment><div className="spinner"></div>Confirming...</React.Fragment> : 'Confirm Details'}
+          </button>
+        )}
+
+        {catId === 'missing' && (
+          <button className="btn-primary" disabled={loading === 'submit'} onClick={() => doAction('submit', onConfirm)}>
+            {loading === 'submit' ? <React.Fragment><div className="spinner"></div>Submitting...</React.Fragment> : 'Submit Details'}
+          </button>
+        )}
+
+        {(catId === 'close' || catId === 'past') && (
+          <React.Fragment>
+            <div style={{ display:'flex', gap:'10px' }}>
+              <button className="btn-primary" disabled={!!loading} onClick={() => doAction('submit', null)}>
+                {loading === 'submit' ? <React.Fragment><div className="spinner"></div>Saving...</React.Fragment> : 'Update Details'}
+              </button>
+              {showReminder && (
+                <button className="btn-outline" disabled={!!loading} onClick={() => doAction('reminder', onReminder)} style={{ flex:1 }}>
+                  {loading === 'reminder' ? <React.Fragment><div className="spinner-dark"></div>Sending...</React.Fragment> : 'Send Reminder'}
+                </button>
+              )}
+              {showFollowUp && (
+                <button className="btn-outline" disabled={!!loading} onClick={() => doAction('followup', onReminder)} style={{ flex:1 }}>
+                  {loading === 'followup' ? <React.Fragment><div className="spinner-dark"></div>Sending...</React.Fragment> : 'Send Follow-Up'}
+                </button>
+              )}
+            </div>
+            {showEscalate && (
+              <button className="btn-danger" disabled={!!loading} onClick={() => doAction('escalate', onEscalate)}>
+                {loading === 'escalate' ? <React.Fragment><div className="spinner"></div>Escalating...</React.Fragment> : 'Escalate'}
+              </button>
+            )}
+          </React.Fragment>
+        )}
+
+        {catId === 'all' && dirty && (
+          <button className="btn-primary" disabled={loading === 'submit'} onClick={() => doAction('submit', null)}>
+            {loading === 'submit' ? <React.Fragment><div className="spinner"></div>Saving...</React.Fragment> : 'Update Details'}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  const [view, setView] = React.useState('categories');
+  const [activeCategory, setActiveCategory] = React.useState(null);
+  const [selectedInvoice, setSelectedInvoice] = React.useState(null);
+  const [invoices, setInvoices] = React.useState([]);
+  const [toast, setToast] = React.useState(null);
+
+  const showToast = (msg) => {
+    setToast(null);
+    setTimeout(() => { setToast(msg); setTimeout(() => setToast(null), 2200); }, 50);
+  };
+
+  const popInvoice = () => {
+    setInvoices(prev => prev.filter((_, i) => i !== selectedInvoice));
+    setSelectedInvoice(null);
+  };
+
+  const handleCategoryClick = (cat) => {
+    setActiveCategory(cat);
+    setInvoices(generateInvoices(cat));
+    setSelectedInvoice(null);
+    setView('detail');
+  };
+
+  const handleBack = () => {
+    setView('categories');
+    setActiveCategory(null);
+    setSelectedInvoice(null);
+  };
+
+  return (
+    <div className="layout">
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <h1>Decolum</h1>
+          <span>Project Everblue</span>
+        </div>
+        <nav className="sidebar-nav">
+          {sidebarItems.map((item) =>
+          <a key={item.label} className={item.active ? 'active' : ''} href={item.href || '#'} onClick={item.active ? (e) => {e.preventDefault();handleBack();} : undefined}>
+              <SidebarIcon name={item.icon} />{item.label}
+            </a>
+          )}
+          <div className="spacer"></div>
+          <a><SidebarIcon name="exit" />Exit</a>
+        </nav>
+      </aside>
+
+      <header className="header">
+        <h2>Manage Invoices</h2>
+        <div className="header-user">
+          <span>Mark</span>
+          <div className="header-avatar">M</div>
+        </div>
+      </header>
+
+      <main className="main" style={{ position:'relative' }}>
+        {toast && <div className="success-toast" key={toast}>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#166534" strokeWidth="1.5" strokeLinecap="round"><path d="M4 8.5l3 3 5-6" /><circle cx="8" cy="8" r="7" /></svg>
+          {toast}
+        </div>}
+        {view === 'categories' &&
+        <React.Fragment>
+            <div className="breadcrumb-bar">
+              <span className="breadcrumb-text"><strong>Manage Invoices</strong></span>
+            </div>
+            <div className="categories">
+              {categories.map((cat) =>
+            <div className="category-tile" key={cat.id} onClick={() => handleCategoryClick(cat)}>
+                  <div className="category-count" style={{ color: cat.color }}>{String(cat.count).padStart(2, '0')}</div>
+                  <div className="category-divider"></div>
+                  <div className="category-name">{cat.name}</div>
+                  <div className="category-chevron">
+                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M6 3l5 5-5 5" /></svg>
+                  </div>
+                </div>
+            )}
+            </div>
+          </React.Fragment>
+        }
+
+        {view === 'detail' && activeCategory &&
+        <React.Fragment>
+            <div className="breadcrumb-bar">
+              <button className="back-btn" onClick={handleBack}>
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M15 10H5M5 10l5-5M5 10l5 5" /></svg>
+              </button>
+              <span className="breadcrumb-text">Manage Invoices / <strong>{activeCategory.name}</strong></span>
+            </div>
+            <div className="detail-view">
+              {/* Left: Invoice list */}
+              <div className="invoice-list-col">
+                <div className="col-header">{invoices.length} Invoices</div>
+                {invoices.map((inv, i) =>
+              <div
+                key={inv.id}
+                className={`inv-item${selectedInvoice === i ? ' selected' : ''}`}
+                onClick={() => setSelectedInvoice(i)}>
+                
+                    <div className="inv-client">{inv.client}</div>
+                    <div className="inv-amount">{inv.amount}</div>
+                    <div className="inv-meta">
+                      <span>{inv.date}</span>
+                      <span className="sep">|</span>
+                      <span>{inv.lockup}</span>
+                    </div>
+                  </div>
+              )}
+              </div>
+
+              {/* Center: PDF viewer */}
+              <div className="pdf-col">
+                {selectedInvoice === null ?
+              <div className="pdf-placeholder">
+                    <svg width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+                      <rect x="8" y="4" width="32" height="40" rx="2" />
+                      <path d="M16 16h16M16 22h16M16 28h10" />
+                      <path d="M26 4v10h10" />
+                    </svg>
+                    Select an Invoice to View it
+                  </div> :
+
+              <InvoicePDF invoice={invoices[selectedInvoice]} />
+              }
+              </div>
+
+              {/* Right: Context panel */}
+              <div className="right-col">
+                <div className="col-header">Details</div>
+                {selectedInvoice === null ?
+                  <div className="right-placeholder">Select an invoice to see details</div> :
+                  <RightPanel
+                    invoice={invoices[selectedInvoice]}
+                    category={activeCategory}
+                    onConfirm={() => { showToast('Invoice confirmed successfully'); popInvoice(); }}
+                    onReminder={() => { showToast('Email sent successfully'); }}
+                    onEscalate={() => { showToast('Invoice escalated successfully'); popInvoice(); }}
+                  />
+                }
+              </div>
+            </div>
+          </React.Fragment>
+        }
+      </main>
+    </div>);
+
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

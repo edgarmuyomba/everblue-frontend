@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decolum — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<style>
+  :root {
+    --blue: #1877F2;
+    --blue-dark: #1565D8;
+    --blue-light: #E7F0FF;
+    --white: #FFFFFF;
+    --smoke: #F5F6FA;
+    --gray-100: #EBEDF0;
+    --gray-200: #DADDE1;
+    --gray-400: #8A8D91;
+    --gray-600: #606770;
+    --gray-800: #1C1E21;
+    --radius: 6px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--smoke); color:var(--gray-800); height:100vh; overflow:hidden; }
+  
+  .layout { display:grid; grid-template-columns:240px 1fr; grid-template-rows:60px 1fr; height:100vh; }
+  
+  /* SIDEBAR */
+  .sidebar { grid-row:1/3; background:var(--white); border-right:1px solid var(--gray-100); display:flex; flex-direction:column; padding:0; }
+  .sidebar-brand { padding:20px 24px; border-bottom:1px solid var(--gray-100); }
+  .sidebar-brand h1 { font-size:35px; font-weight:900; color:var(--blue); letter-spacing:-0.5px; }
+  .sidebar-brand span { font-size:9px; color:var(--gray-400); text-transform:uppercase; letter-spacing:1.5px; font-weight:500; }
+  .sidebar-nav { flex:1; padding:12px 12px; display:flex; flex-direction:column; gap:2px; }
+  .sidebar-nav a { display:flex; align-items:center; gap:12px; padding:10px 14px; border-radius:var(--radius); font-size:14px; font-weight:500; color:var(--gray-600); text-decoration:none; transition:all 0.15s; cursor:pointer; }
+  .sidebar-nav a:hover { background:var(--smoke); color:var(--gray-800); }
+  .sidebar-nav a.active { background:var(--blue); color:var(--white); }
+  .sidebar-nav a svg { width:18px; height:18px; flex-shrink:0; }
+  .sidebar-nav .spacer { flex:1; }
+  
+  /* HEADER */
+  .header { background:var(--white); border-bottom:1px solid var(--gray-100); display:flex; align-items:center; justify-content:space-between; padding:0 32px; }
+  .header h2 { font-size:20px; font-weight:700; letter-spacing:-0.3px; }
+  .header-user { display:flex; align-items:center; gap:12px; cursor:pointer; }
+  .header-user span { font-size:14px; font-weight:500; color:var(--gray-600); }
+  .header-avatar { width:34px; height:34px; border-radius:50%; background:var(--blue); display:flex; align-items:center; justify-content:center; color:white; font-size:14px; font-weight:600; }
+  
+  /* MAIN */
+  .main { padding:20px 24px; overflow-y:hidden; display:flex; flex-direction:column; }
+  .tiles { display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:16px; flex:1; min-height:0; }
+  
+  .tile { background:var(--white); border-radius:var(--radius); border:1px solid var(--gray-100); padding:28px; display:flex; flex-direction:column; position:relative; min-height:0; overflow:hidden; }
+  .tile-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .tile-header h3 { font-size:13px; font-weight:600; color:var(--gray-800); text-transform:uppercase; letter-spacing:0.5px; }
+  .export-btn { width:30px; height:30px; border-radius:var(--radius); border:1px solid var(--gray-200); background:var(--white); display:flex; align-items:center; justify-content:center; cursor:pointer; transition:all 0.15s; color:var(--gray-400); }
+  .export-btn:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-light); }
+
+  /* Lockup tile */
+  .lockup-body { display:flex; align-items:baseline; gap:12px; }
+  .lockup-number { font-size:96px; font-weight:700; color:var(--gray-800); line-height:1; letter-spacing:-4px; }
+  .lockup-label { font-size:16px; color:var(--gray-400); line-height:1.4; font-weight:500; }
+  .lockup-sub { margin-top:auto; padding-top:16px; border-top:1px solid var(--gray-100); display:flex; align-items:center; gap:8px; }
+  .lockup-sub-value { font-size:28px; font-weight:700; color:var(--blue); }
+  .lockup-sub-label { font-size:14px; color:var(--gray-400); font-weight:500; }
+
+  /* Bar chart */
+  .bar-chart { flex:1; display:flex; align-items:stretch; gap:20px; padding-top:8px; min-height:0; }
+  .bar-group { flex:1; display:flex; flex-direction:column; align-items:center; gap:8px; }
+  .bar-track { width:100%; flex:1; min-height:80px; background:var(--smoke); border-radius:4px 4px 0 0; position:relative; overflow:hidden; display:flex; align-items:flex-end; }
+  .bar-fill { width:100%; border-radius:4px 4px 0 0; transition:height 0.6s cubic-bezier(.4,0,.2,1); }
+  .bar-value { font-size:15px; font-weight:600; color:var(--gray-800); }
+  .bar-label { font-size:12px; color:var(--gray-400); font-weight:500; text-transform:uppercase; letter-spacing:0.3px; }
+
+  /* Pie chart */
+  .pie-container { flex:1; display:flex; align-items:center; justify-content:center; gap:32px; padding-top:8px; }
+  .pie-legend { display:flex; flex-direction:column; gap:14px; }
+  .pie-legend-item { display:flex; align-items:center; gap:8px; }
+  .pie-dot { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+  .pie-legend-text { font-size:15px; color:var(--gray-600); font-weight:500; }
+  .pie-legend-value { font-size:15px; font-weight:700; color:var(--gray-800); margin-left:auto; padding-left:16px; }
+
+  /* Payment list */
+  .payment-list { flex:1; display:flex; flex-direction:column; overflow-y:auto; }
+  .payment-item { display:flex; align-items:center; justify-content:space-between; padding:14px 0; border-bottom:1px solid var(--gray-100); }
+  .payment-item:last-child { border-bottom:none; }
+  .payment-client { font-size:15px; font-weight:600; color:var(--gray-800); }
+  .payment-date { font-size:13px; color:var(--gray-400); margin-top:2px; }
+  .payment-amount { font-size:22px; font-weight:700; color:var(--gray-800); letter-spacing:-0.3px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel">
+
+
+
+
+
+
+
+const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+  "accentColor": "#0A4DC3",
+  "tileStyle": "shadow"
+} /*EDITMODE-END*/;
+
+const ExportIcon = () =>
+<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M7 1v8M3 5l4-4 4 4M1 10v2a1 1 0 001 1h10a1 1 0 001-1v-2" />
+  </svg>;
+
+
+const sidebarItems = [
+{ label: 'Dashboard', icon: 'grid', active: true, href: 'index.html' },
+{ label: 'Manage Invoices', icon: 'file', href: 'Manage Invoices.html' },
+{ label: 'Import Invoices', icon: 'upload', href: 'Import Invoices.html' },
+{ label: 'Options', icon: 'sliders' },
+{ label: 'Settings', icon: 'settings' }];
+
+
+const SidebarIcon = ({ name }) => {
+  const icons = {
+    grid: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><rect x="1" y="1" width="6" height="6" rx="1" /><rect x="11" y="1" width="6" height="6" rx="1" /><rect x="1" y="11" width="6" height="6" rx="1" /><rect x="11" y="11" width="6" height="6" rx="1" /></svg>,
+    file: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M10 1H4a1 1 0 00-1 1v14a1 1 0 001 1h10a1 1 0 001-1V6L10 1z" /><path d="M10 1v5h5" /></svg>,
+    upload: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M9 12V3M5 7l4-4 4 4M1 13v2a2 2 0 002 2h12a2 2 0 002-2v-2" /></svg>,
+    sliders: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><line x1="3" y1="15" x2="3" y2="9" /><line x1="3" y1="5" x2="3" y2="3" /><line x1="9" y1="15" x2="9" y2="11" /><line x1="9" y1="7" x2="9" y2="3" /><line x1="15" y1="15" x2="15" y2="7" /><line x1="15" y1="3" x2="15" y2="3" /><circle cx="3" cy="7" r="2" /><circle cx="9" cy="9" r="2" /><circle cx="15" cy="5" r="2" /></svg>,
+    settings: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="9" cy="9" r="3" /><path d="M15.4 11a1.2 1.2 0 00.2 1.3l.1.1a1.4 1.4 0 11-2 2l-.1-.1a1.2 1.2 0 00-1.3-.2 1.2 1.2 0 00-.7 1.1v.2a1.4 1.4 0 11-2.8 0v-.1a1.2 1.2 0 00-.8-1.1 1.2 1.2 0 00-1.3.2l-.1.1a1.4 1.4 0 11-2-2l.1-.1a1.2 1.2 0 00.2-1.3 1.2 1.2 0 00-1.1-.7h-.2a1.4 1.4 0 110-2.8h.1a1.2 1.2 0 001.1-.8 1.2 1.2 0 00-.2-1.3l-.1-.1a1.4 1.4 0 112-2l.1.1a1.2 1.2 0 001.3.2h.1a1.2 1.2 0 00.7-1.1v-.2a1.4 1.4 0 112.8 0v.1a1.2 1.2 0 00.7 1.1 1.2 1.2 0 001.3-.2l.1-.1a1.4 1.4 0 112 2l-.1.1a1.2 1.2 0 00-.2 1.3v.1a1.2 1.2 0 001.1.7h.2a1.4 1.4 0 010 2.8h-.1a1.2 1.2 0 00-1.1.7z" /></svg>,
+    exit: <svg viewBox="0 0 18 18" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><path d="M6 16H3a1 1 0 01-1-1V3a1 1 0 011-1h3M12 13l4-4-4-4M16 9H6" /></svg>
+  };
+  return icons[name] || null;
+};
+
+const revenueData = [
+{ label: 'Paid', value: 842000, color: '#1877F2' },
+{ label: 'Pending', value: 245000, color: '#FDB813' },
+{ label: 'Overdue', value: 128000, color: '#FA3E3E' },
+{ label: 'Written Off', value: 35000, color: 'var(--gray-200)' }];
+const revenueMax = Math.max(...revenueData.map((d) => d.value));
+
+
+const clientData = [
+{ label: 'Paid', value: 42, color: '#1877F2' },
+{ label: 'Pending', value: 18, color: '#FDB813' },
+{ label: 'Overdue', value: 11, color: '#FA3E3E' },
+{ label: 'Written Off', value: 4, color: 'var(--gray-200)' }];
+
+
+const payments = [
+{ client: 'Meridian Corp', date: 'May 12, 2026', amount: '$24,500' },
+{ client: 'Atlas Industries', date: 'May 14, 2026', amount: '$18,200' },
+{ client: 'Vertex Solutions', date: 'May 18, 2026', amount: '$31,750' },
+{ client: 'NovaBridge LLC', date: 'May 22, 2026', amount: '$9,800' },
+{ client: 'Pinnacle Group', date: 'May 25, 2026', amount: '$44,100' },
+{ client: 'SkyBound Tech', date: 'Jun 01, 2026', amount: '$12,600' }];
+
+
+function PieChart({ data }) {
+  const total = data.reduce((s, d) => s + d.value, 0);
+  let cum = 0;
+  const size = 200;
+  const cx = size / 2,cy = size / 2,r = 80,inner = 50;
+
+  const paths = data.map((d, i) => {
+    const frac = d.value / total;
+    const startAngle = cum * 2 * Math.PI - Math.PI / 2;
+    cum += frac;
+    const endAngle = cum * 2 * Math.PI - Math.PI / 2;
+    const large = frac > 0.5 ? 1 : 0;
+    const x1 = cx + r * Math.cos(startAngle);
+    const y1 = cy + r * Math.sin(startAngle);
+    const x2 = cx + r * Math.cos(endAngle);
+    const y2 = cy + r * Math.sin(endAngle);
+    const ix1 = cx + inner * Math.cos(endAngle);
+    const iy1 = cy + inner * Math.sin(endAngle);
+    const ix2 = cx + inner * Math.cos(startAngle);
+    const iy2 = cy + inner * Math.sin(startAngle);
+    return (
+      <path key={i} d={`M${x1},${y1} A${r},${r} 0 ${large} 1 ${x2},${y2} L${ix1},${iy1} A${inner},${inner} 0 ${large} 0 ${ix2},${iy2} Z`} fill={d.color} />);
+
+  });
+
+  return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ height: "500px", width: "400px" }}>{paths}</svg>;
+}
+
+function App() {
+  const [tweaks, setTweak] = useTweaks(TWEAK_DEFAULTS);
+  const accent = tweaks.accentColor;
+  const bordered = tweaks.tileStyle === 'bordered';
+
+  const tileStyle = bordered ? {} : { border: 'none', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' };
+
+  return (
+    <div className="layout">
+      {/* Sidebar */}
+      <aside className="sidebar">
+        <div className="sidebar-brand">
+          <h1 style={{ ...{ color: accent, fontSize: "35px", fontWeight: "900" }, color: "rgb(108, 108, 108)", fontSize: "35px", fontWeight: "900" }}>Decolum</h1>
+          <span style={{ fontSize: "9px" }}>Project Everblue</span>
+        </div>
+        <nav className="sidebar-nav">
+          {sidebarItems.map((item) =>
+          <a key={item.label} className={item.active ? 'active' : ''} style={item.active ? { background: accent } : {}} href={item.href || '#'}>
+              <SidebarIcon name={item.icon} />{item.label}
+            </a>
+          )}
+          <div className="spacer"></div>
+          <a><SidebarIcon name="exit" />Exit</a>
+        </nav>
+      </aside>
+
+      {/* Header */}
+      <header className="header">
+        <h2>Dashboard</h2>
+        <div className="header-user">
+          <span>Mark</span>
+          <div className="header-avatar" style={{ background: '#606770', color: "rgb(255, 255, 255)" }}>M</div>
+        </div>
+      </header>
+
+      {/* Main */}
+      <main className="main">
+        <div className="tiles">
+          {/* Tile 1: Lockup Days */}
+          <div className="tile" style={tileStyle}>
+            <div className="tile-header">
+              <h3>Lockup Days</h3>
+              <button className="export-btn"><ExportIcon /></button>
+            </div>
+            <div className="lockup-body">
+              <div className="lockup-number" style={{ fontSize: "350px", color: "rgb(112, 112, 112)" }}>131</div>
+              <div className="lockup-label">Days<br />Average</div>
+            </div>
+            <div className="lockup-sub">
+              <div className="lockup-sub-value">4.7</div>
+              <div className="lockup-sub-label">days per<br />$1,000 revenue</div>
+            </div>
+          </div>
+
+          {/* Tile 2: Revenue Breakdown */}
+          <div className="tile" style={tileStyle}>
+            <div className="tile-header">
+              <h3>Revenue Breakdown</h3>
+              <button className="export-btn"><ExportIcon /></button>
+            </div>
+            <div className="bar-chart">
+              {revenueData.map((d) =>
+              <div className="bar-group" key={d.label}>
+                  <div className="bar-value">${(d.value / 1000).toFixed(0)}k</div>
+                  <div className="bar-track">
+                    <div className="bar-fill" style={{ height: `${d.value / revenueMax * 100}%`, background: d.color }}></div>
+                  </div>
+                  <div className="bar-label">{d.label}</div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Tile 3: Client Breakdown */}
+          <div className="tile" style={tileStyle}>
+            <div className="tile-header">
+              <h3>Client Breakdown</h3>
+              <button className="export-btn"><ExportIcon /></button>
+            </div>
+            <div className="pie-container">
+              <PieChart data={clientData} />
+              <div className="pie-legend">
+                {clientData.map((d) =>
+                <div className="pie-legend-item" key={d.label}>
+                    <div className="pie-dot" style={{ background: d.color }}></div>
+                    <div className="pie-legend-text">{d.label}</div>
+                    <div className="pie-legend-value">{d.value}</div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Tile 4: Upcoming Payments */}
+          <div className="tile" style={tileStyle}>
+            <div className="tile-header">
+              <h3>Upcoming Payment Dates</h3>
+              <button className="export-btn"><ExportIcon /></button>
+            </div>
+            <div className="payment-list">
+              {payments.map((p, i) =>
+              <div className="payment-item" key={i}>
+                  <div>
+                    <div className="payment-client">{p.client}</div>
+                    <div className="payment-date">{p.date}</div>
+                  </div>
+                  <div className="payment-amount">{p.amount}</div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <TweaksPanel title="Tweaks">
+        <TweakSection label="Theme">
+          <TweakColor label="Accent" value={tweaks.accentColor} onChange={(v) => setTweak('accentColor', v)} options={['#1877F2', '#1565D8', '#0A4DC3', '#344854']} />
+          <TweakRadio label="Tile Style" value={tweaks.tileStyle} onChange={(v) => setTweak('tileStyle', v)} options={['bordered', 'shadow']} />
+        </TweakSection>
+      </TweaksPanel>
+    </div>);
+
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
