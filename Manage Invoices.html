@@ -614,9 +614,9 @@
 
 
     const categories = [
-      { id: 'pending', name: 'Pending Review', count: 36, color: '#FDB813' },
-      { id: 'missing', name: 'Missing Details', count: 2, color: '#FA3E3E' },
-      { id: 'close', name: 'Payment Date Close', count: 10, color: '#FF8C42' },
+      { id: 'confirmation', name: 'Invoice Detail Confirmation', count: 36, color: '#FDB813' },
+      { id: 'delivery', name: 'Delivery & Payment Confirmation', count: 2, color: '#FA3E3E' },
+      { id: 'approaching', name: 'Payment Date Approaching - 1st Follow Up', count: 10, color: '#FF8C42' },
       { id: 'past', name: 'Payment Date Past', count: 13, color: '#D63031' },
       { id: 'all', name: 'All Invoices', count: 62, color: 'var(--accent)' }];
 
@@ -765,6 +765,11 @@
       const [teamDropOpen, setTeamDropOpen] = React.useState(false);
       const [payDate, setPayDate] = React.useState('');
       const [email, setEmail] = React.useState('');
+      const [deliveryMethod, setDeliveryMethod] = React.useState('');
+      const [contactName, setContactName] = React.useState('');
+      const [contactEmail, setContactEmail] = React.useState('');
+      const [cfoName, setCfoName] = React.useState('');
+      const [cfoEmail, setCfoEmail] = React.useState('');
 
       React.useEffect(() => {
         setFields({
@@ -779,6 +784,11 @@
         setSelectedTeam([]);
         setPayDate('');
         setEmail('');
+        setDeliveryMethod('');
+        setContactName('');
+        setContactEmail('');
+        setCfoName('');
+        setCfoEmail('');
       }, [invoice.id]);
 
       const updateField = (key, val) => {
@@ -792,8 +802,8 @@
       };
 
       const catId = category.id;
-      const showExtras = catId === 'missing' || catId === 'close' || catId === 'past';
-      const showReminder = catId === 'close';
+      const showExtras = catId === 'delivery' || catId === 'approaching' || catId === 'past';
+      const showReminder = catId === 'approaching';
       const showFollowUp = catId === 'past';
       const showEscalate = catId === 'past';
 
@@ -826,8 +836,29 @@
             <React.Fragment>
               <div className="field-divider"></div>
               <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-800)', marginTop: '4px' }}>
-                {catId === 'missing' ? 'Missing Information' : 'Additional Details'}
+                {catId === 'delivery' ? 'Delivery & Payment' : 'Additional Details'}
               </div>
+              {catId === 'delivery' && (
+                <React.Fragment>
+                  <div className="field-group">
+                    <label className="field-label">Delivery Method</label>
+                    <select className="field-input" value={deliveryMethod} onChange={e => { setDeliveryMethod(e.target.value); setDirty(true); }}>
+                      <option value="">Select method...</option>
+                      <option value="physical">Physical Delivery</option>
+                      <option value="mail">Mail</option>
+                      <option value="both">Both</option>
+                    </select>
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">Client Contact Person</label>
+                    <input className="field-input" placeholder="Full name" value={contactName} onChange={e => { setContactName(e.target.value); setDirty(true); }} />
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">Contact Email</label>
+                    <input className="field-input" type="email" placeholder="contact@company.com" value={contactEmail} onChange={e => { setContactEmail(e.target.value); setDirty(true); }} />
+                  </div>
+                </React.Fragment>
+              )}
               <div className="field-group" style={{ position: 'relative' }}>
                 <label className="field-label">Team Members</label>
                 {selectedTeam.length > 0 && (
@@ -870,27 +901,29 @@
                 <label className="field-label">Expected Payment Date</label>
                 <input className="field-input" type="date" value={payDate} onChange={e => { setPayDate(e.target.value); setDirty(true); }} />
               </div>
-              <div className="field-group">
-                <label className="field-label">Client Email</label>
-                <input className="field-input" type="email" placeholder="client@company.com" value={email} onChange={e => { setEmail(e.target.value); setDirty(true); }} />
-              </div>
+              {catId !== 'delivery' && (
+                <div className="field-group">
+                  <label className="field-label">Client Email</label>
+                  <input className="field-input" type="email" placeholder="client@company.com" value={email} onChange={e => { setEmail(e.target.value); setDirty(true); }} />
+                </div>
+              )}
             </React.Fragment>
           )}
 
           <div style={{ marginTop: 'auto', paddingTop: '16px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-            {catId === 'pending' && (
+            {catId === 'confirmation' && (
               <button className="btn-primary" disabled={loading === 'confirm'} onClick={() => doAction('confirm', onConfirm)}>
                 {loading === 'confirm' ? <React.Fragment><div className="spinner"></div>Confirming...</React.Fragment> : 'Confirm Details'}
               </button>
             )}
 
-            {catId === 'missing' && (
+            {catId === 'delivery' && (
               <button className="btn-primary" disabled={loading === 'submit'} onClick={() => doAction('submit', onConfirm)}>
                 {loading === 'submit' ? <React.Fragment><div className="spinner"></div>Submitting...</React.Fragment> : 'Submit Details'}
               </button>
             )}
 
-            {(catId === 'close' || catId === 'past') && (
+            {(catId === 'approaching' || catId === 'past') && (
               <React.Fragment>
                 <div style={{ display: 'flex', gap: '10px' }}>
                   <button className="btn-primary" disabled={!!loading} onClick={() => doAction('submit', null)}>
