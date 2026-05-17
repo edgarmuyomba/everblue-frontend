@@ -907,6 +907,25 @@
                   <input className="field-input" type="email" placeholder="client@company.com" value={email} onChange={e => { setEmail(e.target.value); setDirty(true); }} />
                 </div>
               )}
+              {catId === 'approaching' && (
+                <React.Fragment>
+                  <div className="field-divider"></div>
+                  <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-800)', marginTop: '4px' }}>
+                    Client Escalation
+                  </div>
+                  <div style={{ fontSize: '12px', color: 'var(--gray-600)', lineHeight: 1.4, marginTop: '-4px' }}>
+                    If a reminder is sent with these details filled in, the CFO will be CC'd on the reminder.
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">Client CFO Name</label>
+                    <input className="field-input" placeholder="Full name" value={cfoName} onChange={e => { setCfoName(e.target.value); setDirty(true); }} />
+                  </div>
+                  <div className="field-group">
+                    <label className="field-label">Client CFO Email</label>
+                    <input className="field-input" type="email" placeholder="cfo@company.com" value={cfoEmail} onChange={e => { setCfoEmail(e.target.value); setDirty(true); }} />
+                  </div>
+                </React.Fragment>
+              )}
             </React.Fragment>
           )}
 
