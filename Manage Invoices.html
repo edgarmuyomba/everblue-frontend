@@ -914,7 +914,7 @@
                   <input className="field-input" type="email" placeholder="client@company.com" value={email} onChange={e => { setEmail(e.target.value); setDirty(true); }} />
                 </div>
               )}
-              {catId === 'approaching' && (
+              {(catId === 'approaching' || catId === 'past' || catId === 'final') && (
                 <React.Fragment>
                   <div className="field-divider"></div>
                   <div style={{ fontSize: '11px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-800)', marginTop: '4px' }}>
