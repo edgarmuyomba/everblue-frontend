@@ -472,6 +472,16 @@
       { client: 'Pinnacle Group', date: 'May 25, 2026', amount: '$44,100' },
       { client: 'SkyBound Tech', date: 'Jun 01, 2026', amount: '$12,600' }];
 
+    const outstandingInvoices = [
+      { client: 'Helios Manufacturing', amountValue: 128400 },
+      { client: 'Cascade Holdings', amountValue: 96750 },
+      { client: 'Northwind Logistics', amountValue: 81200 },
+      { client: 'Quantum Dynamics', amountValue: 67500 },
+      { client: 'Brightline Partners', amountValue: 54300 },
+      { client: 'Ironclad Systems', amountValue: 38900 }].
+      sort((a, b) => b.amountValue - a.amountValue).
+      map((r) => ({ ...r, amount: '$' + r.amountValue.toLocaleString() }));
+
 
     function PieChart({ data }) {
       const total = data.reduce((s, d) => s + d.value, 0);
@@ -574,23 +584,21 @@
                 </div>
               </div>
 
-              {/* Tile 3: Client Breakdown */}
+              {/* Tile 3: Largest Outstanding Invoices */}
               <div className="tile" style={tileStyle}>
                 <div className="tile-header">
-                  <h3>Client Breakdown</h3>
+                  <h3>Largest Outstanding Invoices</h3>
                   <button className="export-btn"><ExportIcon /></button>
                 </div>
-                <div className="pie-container">
-                  <PieChart data={clientData} />
-                  <div className="pie-legend">
-                    {clientData.map((d) =>
-                      <div className="pie-legend-item" key={d.label}>
-                        <div className="pie-dot" style={{ background: d.color }}></div>
-                        <div className="pie-legend-text">{d.label}</div>
-                        <div className="pie-legend-value">{d.value}</div>
+                <div className="payment-list">
+                  {outstandingInvoices.map((r, i) =>
+                    <div className="payment-item" key={i}>
+                      <div>
+                        <div className="payment-client">{r.client}</div>
                       </div>
-                    )}
-                  </div>
+                      <div className="payment-amount">{r.amount}</div>
+                    </div>
+                  )}
                 </div>
               </div>
 
