@@ -450,7 +450,7 @@
     };
 
     const revenueData = [
-      { label: 'Paid', value: 842000, color: '#1877F2' },
+      { label: 'Paid', value: 842000, color: '#15803d' },
       { label: 'Pending', value: 245000, color: '#FDB813' },
       { label: 'Overdue', value: 128000, color: '#FA3E3E' },
       { label: 'Written Off', value: 35000, color: 'var(--gray-200)' }];
@@ -605,9 +605,9 @@
                     <div className="payment-item" key={i}>
                       <div>
                         <div className="payment-client">{p.client}</div>
-                        <div className="payment-date">{p.date}</div>
+                        <div className="payment-date">{p.amount}</div>
                       </div>
-                      <div className="payment-amount">{p.amount}</div>
+                      <div className="payment-amount">{p.date}</div>
                     </div>
                   )}
                 </div>

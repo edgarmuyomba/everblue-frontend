@@ -619,7 +619,7 @@
       { id: 'approaching', name: 'Payment Date Approaching - 1st Follow Up', count: 10, color: '#FF8C42' },
       { id: 'past', name: 'Payment Date Past - Manager Escalation', count: 13, color: '#D63031' },
       { id: 'final', name: 'Payment Date Past - Final Escalation', count: 4, color: '#8B0000' },
-      { id: 'all', name: 'All Invoices', count: 65, color: 'var(--accent)' }];
+      { id: 'reports', name: 'Reports', color: 'var(--accent)', isReports: true }];
 
 
     const clients = [
@@ -1024,11 +1024,6 @@
               </React.Fragment>
             )}
 
-            {catId === 'all' && dirty && (
-              <button className="btn-primary" disabled={loading === 'submit'} onClick={() => doAction('submit', null)}>
-                {loading === 'submit' ? <React.Fragment><div className="spinner"></div>Saving...</React.Fragment> : 'Update Details'}
-              </button>
-            )}
           </div>
         </div>
       );
@@ -1103,7 +1098,15 @@
                 <div className="categories">
                   {categories.map((cat) =>
                     <div className="category-tile" key={cat.id} onClick={() => handleCategoryClick(cat)}>
-                      <div className="category-count" style={{ color: cat.color }}>{String(cat.count).padStart(2, '0')}</div>
+                      {cat.isReports ? (
+                        <div className="category-count" style={{ color: cat.color, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <svg width="32" height="32" viewBox="0 0 32 32" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M6 26V14M14 26V6M22 26v-8M4 28h26" />
+                          </svg>
+                        </div>
+                      ) : (
+                        <div className="category-count" style={{ color: cat.color }}>{String(cat.count).padStart(2, '0')}</div>
+                      )}
                       <div className="category-divider"></div>
                       <div className="category-name">{cat.name}</div>
                       <div className="category-chevron">
@@ -1115,7 +1118,33 @@
               </React.Fragment>
             }
 
-            {view === 'detail' && activeCategory &&
+            {view === 'detail' && activeCategory && activeCategory.id === 'reports' &&
+              <React.Fragment>
+                <div className="breadcrumb-bar">
+                  <button className="back-btn" onClick={handleBack}>
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M15 10H5M5 10l5-5M5 10l5 5" /></svg>
+                  </button>
+                  <span className="breadcrumb-text">Manage Invoices / <strong>{activeCategory.name}</strong></span>
+                </div>
+                <div style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '40px 24px', background: 'var(--smoke)', overflowY: 'auto' }}>
+                  <div style={{ width: '100%', maxWidth: '480px', background: 'var(--white)', border: '1px solid var(--gray-100)', borderRadius: 'var(--radius)', boxShadow: 'var(--shadow)', overflow: 'hidden' }}>
+                    <div className="col-header" style={{ padding: '16px 20px', borderBottom: '1px solid var(--gray-100)', fontSize: '12px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--gray-400)' }}>
+                      Available Reports
+                    </div>
+                    {[{ id: 'lockup', name: 'Lockup' }, ...categories.filter(c => !c.isReports)].map(opt =>
+                      <div
+                        key={opt.id}
+                        className="inv-item"
+                        onClick={() => showToast(`Downloading ${opt.name} report...`)}>
+                        <div className="inv-client">{opt.name}</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </React.Fragment>
+            }
+
+            {view === 'detail' && activeCategory && activeCategory.id !== 'reports' &&
               <React.Fragment>
                 <div className="breadcrumb-bar">
                   <button className="back-btn" onClick={handleBack}>
