@@ -69,9 +69,9 @@
 }
 
 .lockup-number {
-  font-size: 96px;
+  font-size: clamp(56px, 12vw, 336px);
   font-weight: 700;
-  color: var(--gray-800);
+  color: rgb(112, 112, 112);
   line-height: 1;
   letter-spacing: -4px;
 }
@@ -197,6 +197,13 @@
   padding-left: 16px;
 }
 
+.pie-svg {
+  width: 100%;
+  height: auto;
+  max-width: 360px;
+  max-height: 360px;
+}
+
 /* Payment list */
 .payment-list {
   flex: 1;
@@ -251,7 +258,7 @@
   }
 
   .lockup-number {
-    font-size: 72px;
+    font-size: clamp(48px, 10vw, 200px);
     letter-spacing: -3px;
   }
 
@@ -269,6 +276,11 @@
 
   .pie-container {
     gap: 20px;
+  }
+
+  .pie-svg {
+    max-width: 280px;
+    max-height: 280px;
   }
 }
 
@@ -291,7 +303,7 @@
   }
 
   .lockup-number {
-    font-size: 56px;
+    font-size: clamp(40px, 8vw, 120px);
     letter-spacing: -2px;
   }
 
@@ -343,5 +355,10 @@
   .pie-legend-text,
   .pie-legend-value {
     font-size: 12px;
+  }
+
+  .pie-svg {
+    max-width: 180px;
+    max-height: 180px;
   }
 }

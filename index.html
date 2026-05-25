@@ -120,7 +120,7 @@
 
       });
 
-      return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ height: "22.5rem", width: "22.5rem" }}>{paths}</svg>;
+      return <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="pie-svg">{paths}</svg>;
     }
 
     function App() {
@@ -168,7 +168,7 @@
                   <button className="export-btn"><ExportIcon /></button>
                 </div>
                 <div className="lockup-body">
-                  <div className="lockup-number" style={{ fontSize: "21rem", color: "rgb(112, 112, 112)" }}>131</div>
+                  <div className="lockup-number">131</div>
                   <div className="lockup-label">Days<br />Average</div>
                 </div>
                 <div className="lockup-sub">
