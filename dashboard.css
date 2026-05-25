@@ -69,7 +69,7 @@
 }
 
 .lockup-number {
-  font-size: clamp(56px, 12vw, 336px);
+  font-size: clamp(120px, 18vw, 336px);
   font-weight: 700;
   color: rgb(112, 112, 112);
   line-height: 1;
@@ -258,7 +258,7 @@
   }
 
   .lockup-number {
-    font-size: clamp(48px, 10vw, 200px);
+    font-size: clamp(80px, 15vw, 240px);
     letter-spacing: -3px;
   }
 
@@ -303,7 +303,7 @@
   }
 
   .lockup-number {
-    font-size: clamp(40px, 8vw, 120px);
+    font-size: clamp(56px, 12vw, 160px);
     letter-spacing: -2px;
   }
 
